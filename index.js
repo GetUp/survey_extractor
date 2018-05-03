@@ -1,7 +1,7 @@
 require('dotenv').config()
 const rp = require('request-promise-native')
 const Hashids = require('hashids')
-const pgp = require('pg-promise')()
+const pgp = require('pg-promise')({schema: process.env.SCHEMA || 'public'})
 
 const survey_system = process.env.SURVEY_SYSTEM
 const survey_id = process.env.SURVEY_ID
