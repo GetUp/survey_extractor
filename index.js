@@ -26,6 +26,7 @@ const columns = [
   'survey_system',
   'survey_id',
   'survey_name',
+  'response_id',
   'user_id',
   'survey_data',
   'meta',
@@ -35,12 +36,13 @@ let survey_name
 
 const decode_token = hash => hashids.decode(hash)[0]
 
-const response_mapper = ({ survey_data, ...meta }) => {
+const response_mapper = ({ id, survey_data, ...meta }) => {
   const user_id = meta.url_variables["t"] && decode_token(meta.url_variables["t"].value)
   return {
     survey_system,
     survey_id,
     survey_name,
+    response_id: id,
     user_id,
     survey_data,
     meta,
@@ -58,7 +60,8 @@ const fetch = async (page, finish_page) => {
   const qs = Object.assign({page}, params)
   const response = await rp({ uri, qs, json: true })
   const records = response.data.map(response_mapper)
-  await db.none(pgp.helpers.insert(records, column_set))
+  const insert_query = pgp.helpers.insert(records, column_set)
+  await db.none(`${insert_query} ON CONFLICT DO NOTHING`)
   console.log(`page ${page} of ${finish_page} done`)
   fetch(page + 1, (last_page || response.total_pages))
 }

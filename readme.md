@@ -1,13 +1,13 @@
 
     CREATE TABLE "responses" (
-        "id" serial,
         "survey_system" text,
         "survey_id" text,
         "survey_name" text,
+        "response_id" integer,
         "user_id" integer,
         "survey_data" jsonb,
         "meta" jsonb,
-        PRIMARY KEY ("id")
+        PRIMARY KEY ("survey_system", "survey_id", "response_id")
     );
     CREATE INDEX "responses_user_id_idx" ON "responses"("user_id");
 
