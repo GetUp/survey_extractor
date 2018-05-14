@@ -1,6 +1,7 @@
 require('dotenv').config()
 const rp = require('request-promise-native')
 const m = require('moment-timezone')
+const Hashids = require('hashids')
 
 // const survey_system = process.env.SURVEY_SYSTEM
 const survey_id = process.env.SURVEY_ID
@@ -14,13 +15,10 @@ const resultsperpage = parseInt(process.env.RESULTS, 10) || 100
 const auth = { api_token, api_token_secret, }
 const params = { ...auth, resultsperpage, }
 
-// const Hashids = require('hashids')
-// const hashids_salt = process.env.HASHIDS_SALT
-// const hashids_min_length = 1
-// const hashids_alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcefghijklmnopqrstuvwxyz'
-// const hashids = new Hashids(hashids_salt, hashids_min_length, hashids_alpha)
-// const decode_token = hash => hashids.decode(hash)[0]
-// const user_id = meta.url_variables["t"] && decode_token(meta.url_variables["t"].value)
+const hashids_salt = process.env.HASHIDS_SALT
+const hashids_min_length = 1
+const hashids_alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcefghijklmnopqrstuvwxyz'
+const hashids = new Hashids(hashids_salt, hashids_min_length, hashids_alpha)
 
 const identity_api = process.env.IDENTITY_API
 const identity_api_auth = { api_token: process.env.IDENTITY_API_TOKEN }
@@ -35,6 +33,13 @@ const extract_utm = ({utm_source, utm_medium, utm_campaign}) => {
     "medium": utm_medium && utm_medium.value,
     "campaign": utm_campaign && utm_campaign.value,
   }
+}
+
+const identify_member = (email_answer, token) => {
+  const email = (email_answer || '').match(/\S+@\S+/) && email_answer.match(/\S+@\S+/)[0]
+  if (email) return { emails: [{ email }] }
+  const user_id = hashids.decode(token)[0]
+  return { external_ids: { tijuana: user_id } }
 }
 
 const transform_questions = (questions) => {
@@ -54,8 +59,7 @@ const transform_questions = (questions) => {
 const response_mapper = ({ survey_data, ...meta }) => {
   const source = extract_utm(meta.url_variables)
   const create_dt = m.tz(meta.date_submitted, "YYYY-MM-DD HH:mm:ss", 'America/New_York').utc()
-  const email = survey_data[email_question_id].answer
-  const cons_hash = { emails: [{ email }] }
+  const cons_hash = identify_member(survey_data[email_question_id].answer, meta.url_variables["t"].value)
   const survey_responses = transform_questions(survey_data)
   return {
     ...identity_api_auth,
