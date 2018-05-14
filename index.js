@@ -84,11 +84,12 @@ const fetch = async (page, finish_page) => {
   if (page > finish_page) return
   const qs = Object.assign({page}, params)
   const response = await rp({ uri, qs, json: true })
-  await response.data
-    .map(response_mapper)
-    // .map(logger)
-    .map(send)
-  console.log(`page ${page} of ${finish_page} done`)
+  const payloads = await response.data.map(response_mapper)
+  for (const payload of payloads) {
+    process.stdout.write(".")
+    await send(payload)
+  }
+  console.log(`\npage ${page} of ${finish_page} done`)
   return fetch(page + 1, (last_page || response.total_pages))
 }
 
