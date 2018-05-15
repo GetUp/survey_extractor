@@ -33,9 +33,13 @@ const extract_utm = ({utm_source, utm_medium, utm_campaign}) => {
   }
 }
 
-const identify_member = (email_answer, token) => {
-  const email = (email_answer || '').match(/\S+@\S+/) && email_answer.match(/\S+@\S+/)[0]
+const identify_member = (email_question, token_var) => {
+  const email_answer = (email_question && email_question.answer) || ''
+  const email = email_answer.match(/\S+@\S+/) && email_answer.match(/\S+@\S+/)[0]
   if (email) return { emails: [{ email }] }
+
+  // fallback to token
+  const token = token_var && token_var.value
   const user_id = hashids.decode(token)[0]
   return { external_ids: { tijuana: user_id } }
 }
@@ -57,7 +61,7 @@ const transform_questions = (questions) => {
 const response_mapper = ({ survey_data, ...meta }) => {
   const source = extract_utm(meta.url_variables)
   const create_dt = m.tz(meta.date_submitted, "YYYY-MM-DD HH:mm:ss", 'America/New_York').utc()
-  const cons_hash = identify_member(survey_data[email_question_id].answer, meta.url_variables["t"].value)
+  const cons_hash = identify_member(survey_data[email_question_id], meta.url_variables["t"])
   const survey_responses = transform_questions(survey_data)
   return {
     ...identity_api_auth,
