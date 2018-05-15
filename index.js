@@ -23,9 +23,7 @@ const hashids = new Hashids(hashids_salt, hashids_min_length, hashids_alpha)
 const identity_api = process.env.IDENTITY_API
 const identity_api_auth = { api_token: process.env.IDENTITY_API_TOKEN }
 
-const email_question_id = process.env.EMAIL_QUESTION_ID
-
-let survey_name
+let survey_name, email_question_id
 
 const extract_utm = ({utm_source, utm_medium, utm_campaign}) => {
   return {
@@ -75,14 +73,16 @@ const response_mapper = ({ survey_data, ...meta }) => {
   }
 }
 
-const get_name = async (qs) => {
+const set_meta = async (qs) => {
   const response = await rp({ uri: survey, qs, json: true })
-  return response.data.title
+  const email_question = response.data.pages
+    .reduce((questions, page) => questions.concat(page.questions), []) //flatMap
+    .find(q => q.properties.subtype == 'EMAIL')
+  email_question_id = email_question && email_question.id
+  survey_name = response.data.title
 }
 
 const send = async (body) => rp({ method: 'POST', uri: identity_api, body, json: true })
-
-const logger = (p) => { console.log(JSON.stringify(p)) }
 
 const fetch = async (page, finish_page) => {
   if (page > finish_page) return
@@ -98,6 +98,6 @@ const fetch = async (page, finish_page) => {
 }
 
 (async () => {
-  survey_name = await get_name(auth)
+  await set_meta(auth)
   return fetch(first_page, last_page)
 })().catch(console.error.bind(console))
