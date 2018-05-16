@@ -94,7 +94,7 @@ const fetch = async (page, finish_page) => {
   const response = await rp({ uri, qs, json: true })
   const payloads = await response.data.map(response_mapper)
   for (const payload of payloads) {
-    process.stdout.write(".")
+    if (!process.env.HEROKU) process.stdout.write(".")
     await send(payload)
   }
   console.log(`\npage ${page} of ${finish_page} done`)

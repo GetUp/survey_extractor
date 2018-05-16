@@ -1,6 +1,9 @@
 {
   "name": "survey_extractor",
   "private": true,
+  "engines": {
+    "node": "9.11.1"
+  },
   "dependencies": {
     "dotenv": "^5.0.1",
     "hashids": "^1.1.4",
