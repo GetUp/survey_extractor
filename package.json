@@ -7,6 +7,7 @@
   "dependencies": {
     "dotenv": "^5.0.1",
     "hashids": "^1.1.4",
+    "lodash": "^4.17.10",
     "moment-timezone": "^0.5.16",
     "pg-promise": "^8.4.0",
     "request": "^2.85.0",
