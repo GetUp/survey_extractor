@@ -5,6 +5,7 @@ const Hashids = require('hashids')
 const _ = require('lodash')
 
 // const survey_system = process.env.SURVEY_SYSTEM
+const pause_on_first = process.env.PAUSE_ON_FIRST || 60000
 const survey_id = process.env.SURVEY_ID
 const survey = `https://restapi.surveygizmo.com/v5/survey/${survey_id}`
 const uri = `${survey}/surveyresponse`
@@ -91,7 +92,7 @@ const send = async (body) => rp({ method: 'POST', uri: identity_api, body, json:
 
 const pause_after_first_result = _.once(() => {
   console.log("pausing to allow the first set of questions to be created")
-  return new Promise(r => setTimeout(r, 30000))
+  return new Promise(r => setTimeout(r, pause_on_first))
 })
 
 const fetch = async (page, finish_page) => {
