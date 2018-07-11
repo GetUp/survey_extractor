@@ -2,10 +2,8 @@ require('dotenv').config()
 const rp = require('request-promise-native')
 const m = require('moment-timezone')
 const Hashids = require('hashids')
-const _ = require('lodash')
 
 // const survey_system = process.env.SURVEY_SYSTEM
-const pause_on_first = process.env.PAUSE_ON_FIRST || 60000
 const survey_id = process.env.SURVEY_ID
 const survey = `https://restapi.surveygizmo.com/v5/survey/${survey_id}`
 const uri = `${survey}/surveyresponse`
@@ -90,11 +88,6 @@ const set_meta = async (qs) => {
 
 const send = async (body) => rp({ method: 'POST', uri: identity_api, body, json: true })
 
-const pause_after_first_result = _.once(() => {
-  console.log("pausing to allow the first set of questions to be created")
-  return new Promise(r => setTimeout(r, pause_on_first))
-})
-
 const fetch = async (page, finish_page) => {
   if (page > finish_page) return
   const qs = Object.assign({page}, params)
@@ -103,7 +96,6 @@ const fetch = async (page, finish_page) => {
   for (const payload of payloads) {
     if (!process.env.HEROKU) process.stdout.write(".")
     await send(payload)
-    await pause_after_first_result()
   }
   console.log(`\npage ${page} of ${finish_page} done`)
   return fetch(page + 1, (last_page || response.total_pages))
