@@ -25,7 +25,7 @@ const identity_api_auth = { api_token: process.env.IDENTITY_API_TOKEN }
 
 let survey_name, email_question_id
 
-const extract_utm = ({utm_source, utm_medium, utm_campaign}) => {
+const extract_utm = ({ utm_source, utm_medium, utm_campaign }) => {
   return {
     "source": utm_source && utm_source.value,
     "medium": utm_medium && utm_medium.value,
@@ -90,7 +90,7 @@ const send = async (body) => rp({ method: 'POST', uri: identity_api, body, json:
 
 const fetch = async (page, finish_page) => {
   if (page > finish_page) return
-  const qs = Object.assign({page}, params)
+  const qs = Object.assign({ page }, params)
   const response = await rp({ uri, qs, json: true })
   const payloads = await response.data.map(response_mapper)
   for (const payload of payloads) {
