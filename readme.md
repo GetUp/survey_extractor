@@ -1,15 +1,10 @@
+# run
 
-    CREATE TABLE "responses" (
-        "survey_system" text,
-        "survey_id" text,
-        "survey_name" text,
-        "response_id" integer,
-        "user_id" integer,
-        "survey_data" jsonb,
-        "meta" jsonb,
-        PRIMARY KEY ("survey_system", "survey_id", "response_id")
-    );
-    CREATE INDEX "responses_user_id_idx" ON "responses"("user_id");
+use the heroku app https://dashboard.heroku.com/apps/survey-extractor it's already configured with the ID creds, etc.
+
+`heroku run:detached SURVEY_ID=4582397 node index.js`
+
+# dev
 
 rename `.env.sample`, leave the rest of the vars for the command, like so:
 
