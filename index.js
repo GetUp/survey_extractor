@@ -48,8 +48,8 @@ const identify_member = (email_question, uid_var, token_var) => {
   const user_id = hashids.decode(token)[0]
   if (user_id) return { external_ids: { tijuana: user_id } }
 
-  console.log("could not identify member: no EMAIL type question, uid param, or t param")
-  process.exit(1)
+  // give up
+  return null
 }
 
 const transform_questions = (questions) => {
@@ -67,9 +67,14 @@ const transform_questions = (questions) => {
 }
 
 const response_mapper = ({ survey_data, ...meta }) => {
+  if (meta.is_test_data == 1) return null
   const source = extract_utm(meta.url_variables)
   const create_dt = m.tz(meta.date_submitted, "YYYY-MM-DD HH:mm:ss", 'America/New_York').utc()
   const cons_hash = identify_member(survey_data[email_question_id], meta.url_variables["uid"], meta.url_variables["t"])
+  if (cons_hash === null) {
+    console.log(`could not identify member for response ${meta.id}`)
+    return null
+  }
   const survey_responses = transform_questions(survey_data)
   return {
     ...identity_api_auth,
@@ -102,7 +107,7 @@ const fetch = async (page, finish_page) => {
   if (page > finish_page) return
   const qs = Object.assign({ page }, params)
   const response = await rp({ uri, qs, json: true })
-  const payloads = await response.data.map(response_mapper)
+  const payloads = await response.data.map(response_mapper).filter(Boolean)
   for (const payload of payloads) {
     if (!process.env.HEROKU) process.stdout.write(".")
     await send(payload)
