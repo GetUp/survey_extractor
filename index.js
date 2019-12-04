@@ -41,7 +41,10 @@ const identify_member = (email_question, token_var) => {
   // fallback to token
   const token = token_var && token_var.value
   const user_id = hashids.decode(token)[0]
-  return { external_ids: { tijuana: user_id } }
+  if (user_id) return { external_ids: { tijuana: user_id } }
+
+  console.log("could not identify member: no EMAIL type question or t param")
+  process.exit(1)
 }
 
 const transform_questions = (questions) => {
